@@ -1,0 +1,11 @@
+create database ruido;
+use ruido; 
+
+create table nivel_ruido(
+id integer auto_increment primary key,
+decibel decimal(5,2),
+ambiente varchar(15),
+espaco double,
+duracao  double); 
+
+select * from nivel_ruido;
