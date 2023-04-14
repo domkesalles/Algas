@@ -34,7 +34,7 @@ MAX_NOISE_LEVEL = 45
 #         else:
 #             print(error)
 
-def insert_mysql_connector(decibel, ambiente, espaco, duracao, decibel_simulado, ambiente_2):
+def insert_mysql_connector(decibel, ambiente, espaco, duracao):
     try:
         mydb = mysql.connector.connect(
             host = "localhost",
@@ -51,10 +51,6 @@ def insert_mysql_connector(decibel, ambiente, espaco, duracao, decibel_simulado,
 
             sql_query = "NSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES (%s, %s, %s, %s);"
             val = [decibel, ambiente, espaco, duracao]
-            mycursor.execute(sql_query, val)
-
-            sql_query = "NSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES (%s, %s, %s, %s);"
-            val = [decibel_simulado, ambiente_2, espaco, duracao]
             mycursor.execute(sql_query, val)
 
             mydb.commit()
@@ -151,7 +147,8 @@ def medir_nivel_ruido(tempo_medicao):
     lista_espaco.append(espaco)
     lista_tempo.append(duracao)
 
-    insert_mysql_connector(decibel=decibel, ambiente=ambiente, espaco=espaco, duracao=duracao, decibel_simulado=decibel_simulado, ambiente_2=ambiente_2)
+    insert_mysql_connector(decibel=decibel, ambiente=ambiente, espaco=espaco, duracao=duracao)
+    insert_mysql_connector(decibel=decibel_simulado, ambiente=ambiente_2, espaco=espaco, duracao=duracao)
 
     return ambiente_adequado, ambiente_simulado
 
