@@ -21,18 +21,52 @@ RATE = 44100
 # Define o limiar de ruído máximo permitido (em dB)
 MAX_NOISE_LEVEL = 45
 
-def conect_banco():
+# def conect_banco():
+#     try:
+#         conn = mysql.connector.connect(host="localhost", user="root", password="Renato2002", database="ruido", port="3306")
+#         print("Conexão com banco de dados feita\n")
+#         return conn
+#     except mysql.connector.Error as error:
+#         if error.errno == errorcode.ER_BAD_DB_ERROR:
+#             print("Database doesn't exist")
+#         elif error.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+#             print("User name or password is wrong")
+#         else:
+#             print(error)
+
+def insert_mysql_connector(decibel, ambiente, espaco, duracao, decibel_simulado, ambiente_2):
     try:
-        conn = mysql.connector.connect(host="localhost", user="root", password="Renato2002", database="ruido", port="3306")
-        print("Conexão com banco de dados feita\n")
-        return conn
-    except mysql.connector.Error as error:
-        if error.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database doesn't exist")
-        elif error.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("User name or password is wrong")
-        else:
-            print(error)
+        mydb = mysql.connector.connect(
+            host = "localhost",
+            user = "root",
+            password = "urubu100",
+            database = "ruido"
+        )
+
+        if mydb.is_connected():
+            db_Info = mydb.get_server_info()
+            print("Conectado ao MySQL Server", db_Info)
+
+            mycursor = mydb.cursor()
+
+            sql_query = "NSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES (%s, %s, %s, %s);"
+            val = [decibel, ambiente, espaco, duracao]
+            mycursor.execute(sql_query, val)
+
+            sql_query = "NSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES (%s, %s, %s, %s);"
+            val = [decibel_simulado, ambiente_2, espaco, duracao]
+            mycursor.execute(sql_query, val)
+
+            mydb.commit()
+
+            print(mycursor.rowcount, "Registro Inserido com Sucesso!")
+    except mysql.connector.Error as e:
+        print("Erro ao conectar com o MySQL:", e)
+    finally:
+        if(mydb.is_connected()):
+            mycursor.close()
+            mydb.close()
+            print("Conexão com MySQL está Fechada!\n")
 
 def calculate_noise_level(data):
     # Converte os dados do áudio em um array de números inteiros
@@ -47,9 +81,6 @@ def calculate_noise_level(data):
     return decibel
 
 def medir_nivel_ruido(tempo_medicao):
-
-    conn = conect_banco()
-    cursor = conn.cursor()
 
     inicio_processamento = time.time()
 
@@ -120,15 +151,7 @@ def medir_nivel_ruido(tempo_medicao):
     lista_espaco.append(espaco)
     lista_tempo.append(duracao)
 
-    query = f"INSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES ('{decibel}', '{ambiente}', '{espaco}', '{duracao}');"
-    cursor.execute(query)
-
-    query = f"INSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES ('{decibel_simulado}', '{ambiente_2}', '{espaco}', '{duracao}');"
-    cursor.execute(query)
-
-    cursor.close()
-    conn.commit()   
-    conn.close()
+    insert_mysql_connector(decibel=decibel, ambiente=ambiente, espaco=espaco, duracao=duracao, decibel_simulado=decibel_simulado, ambiente_2=ambiente_2)
 
     return ambiente_adequado, ambiente_simulado
 
