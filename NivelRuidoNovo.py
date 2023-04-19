@@ -49,7 +49,7 @@ def insert_mysql_connector(decibel, ambiente, espaco, duracao):
 
             mycursor = mydb.cursor()
 
-            sql_query = "NSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES (%s, %s, %s, %s);"
+            sql_query = "INSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES (%s, %s, %s, %s);"
             val = [decibel, ambiente, espaco, duracao]
             mycursor.execute(sql_query, val)
 
