@@ -1,18 +1,35 @@
-import sys
 import struct
+import sys
 import math
 import time
 import random
 import mysql.connector 
-from matplotlib import pyplot as plot
-from mysql.connector import errorcode
 import numpy as np
+from azure.iot.device import IoTHubDeviceClient, Message
+
+#Connection String
+def conect_iothub():
+    CONNECTION_STRING = "HostName=felipe02211014.azure-devices.net;DeviceId=felipe02211014;SharedAccessKey=VF07EY0+x/zxedBziCYQW/qVVt+8DuYUCtCFHp5FDfA="
+    return IoTHubDeviceClient.create_from_connection_string(CONNECTION_STRING)
+
+def send_message(message):
+    DEVICE_ID = "felipe02211014"
+    message.content_encoding = "utf-8"
+    message.content_type = "application/json"
+    message.custom_properties["device_id"] = DEVICE_ID
+    sensor = conect_iothub()
+    sensor.connect()
+    print("Enviando mensagem:", message)
+    sensor.send_message(message)
+    sensor.shutdown()
 
 # Criação de listas
 lista_decibel = []
 lista_ambiente = []
 lista_espaco = []
 lista_tempo = []
+
+bateria = 100.0
 
 # Configurações da gravação de áudio simulado
 CHUNK = 1024
@@ -53,7 +70,6 @@ def insert_mysql_connector(decibel, ambiente, espaco, duracao):
             sql_query = "INSERT INTO nivel_ruido (decibel, ambiente, espaco, duracao) VALUES (%s, %s, %s, %s);"
             val = [decibel, ambiente, espaco, duracao]
             mycursor.execute(sql_query, val)
-
             mydb.commit()
 
             print(mycursor.rowcount, "Registro Inserido com Sucesso!")
@@ -77,7 +93,7 @@ def calculate_noise_level(data):
 
     return decibel
 
-def medir_nivel_ruido(tempo_medicao):
+def medir_nivel_ruido(tempo_medicao, bateria):
 
     inicio_processamento = time.time()
 
@@ -151,6 +167,9 @@ def medir_nivel_ruido(tempo_medicao):
     insert_mysql_connector(decibel=decibel, ambiente=ambiente, espaco=espaco, duracao=duracao)
     insert_mysql_connector(decibel=decibel_simulado, ambiente=ambiente_2, espaco=espaco, duracao=duracao)
 
+    message = Message('{"decibel": %f, "ambiente": %s, "espaco": %f, "duracao": %s, "bateria": %.2f}' % (decibel_simulado, str(ambiente_2), espaco, duracao, bateria))
+    send_message(message)      
+
     return ambiente_adequado, ambiente_simulado
 
 num_amostras = 1000000
@@ -159,6 +178,7 @@ lista_ambiente_adequado = []
 lista_ambiente_simulado = []
 
 for i in range(num_amostras):
-    ambiente_adequado, ambiente_simulado = medir_nivel_ruido(tempo_medicao)
+    ambiente_adequado, ambiente_simulado = medir_nivel_ruido(tempo_medicao, bateria)
+    bateria -= 0.01 / 100 * bateria
     lista_ambiente_adequado.append(ambiente_adequado)
     lista_ambiente_simulado.append(ambiente_simulado)
