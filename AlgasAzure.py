@@ -37,10 +37,10 @@ MAX_NOISE_LEVEL = 45
 def insert_mysql_connector(decibel, ambiente, espaco, duracao):
     try:
         mydb = mysql.connector.connect(
-            host = "nivel-ruido.mysql.database.azure.com",
+            host = "frequenciacardiaca.mysql.database.azure.com",
             user = "roott",
             password = "Urubu100",
-            database = "ruido",
+            database = "Grupo3",
             ssl_ca = "DigiCertGlobalRootCA.crt.pem",
             port = "3306")
 
